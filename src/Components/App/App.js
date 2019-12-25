@@ -50,34 +50,12 @@ class App extends React.Component {
 
 
     updateIngredient = ((editedIngredient) => {
-        service.updateIngr(editedIngredient).then((response) => {
-            const newIngredient = response.data;
-            this.setState((prevState) => {
-                const newIngrRef = prevState.ingredients.filter((item) => {
-                    if (item.ingredientId === newIngredient.ingredientId) {
-                        return newIngredient;
-                    }
-                    console.log(item);
-                    return item;
-                });
-                return {
-                    "ingredients": newIngrRef
-                }
-            });
-        });
+        service.updateIngr(editedIngredient).then(this.loadIngredients);
     });
 
     deleteIngredient = (ingredientId) => {
-        service.deleteIngr(ingredientId).then((response) => {
-            this.setState((state) => {
-                const ingredientList = state.ingredients.filter((i) => {
-                    return i.name !== ingredientId;
-                });
-                return {ingredientList};
-            });
-        })
+        service.deleteIngr(ingredientId).then(this.loadIngredients)
     };
-
 
     render() {
         return (

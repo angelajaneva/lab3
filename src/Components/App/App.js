@@ -15,7 +15,10 @@ class App extends React.Component {
         super(props);
         this.state = {
             ingredients: [],
-            pizzas: []
+            pizzas: [],
+            pageSize: 10,
+            page: 0,
+            totalPages: 0
         }
     }
 
@@ -23,7 +26,20 @@ class App extends React.Component {
         this.loadIngredients();
     }
 
-    loadIngredients = () => {
+    loadIngredients = (page = 0) => {
+        service.getIngredientsPaged(page, this.state.pageSize).then(response => {
+            this.setState((prevState) => {
+                return {
+                    "ingredients": response.data.content,
+                    "page": response.data.page,
+                    "pageSize": response.data.pageSize,
+                    "totalPages": response.data.totalPages
+                }
+            })
+        })
+    };
+
+     loading = () => {
         service.getIngredients().then(response => {
             this.setState((prevState) => {
                 return {
@@ -39,8 +55,6 @@ class App extends React.Component {
             const newIngredient = response.data;
             this.setState((prevState) => {
                 const newIngrRef = [...prevState.ingredients, newIngredient];
-                //or
-                //const terms = prevState.terms.concat(newTerm);
                 return {
                     "ingredients": newIngrRef
                 }
@@ -50,11 +64,11 @@ class App extends React.Component {
 
 
     updateIngredient = ((editedIngredient) => {
-        service.updateIngr(editedIngredient).then(this.loadIngredients);
+        service.updateIngr(editedIngredient).then(this.loading);
     });
 
     deleteIngredient = (ingredientId) => {
-        service.deleteIngr(ingredientId).then(this.loadIngredients)
+        service.deleteIngr(ingredientId).then(this.loading)
     };
 
     render() {
@@ -64,21 +78,21 @@ class App extends React.Component {
                     <Header/>
                     <main>
                         <Route path={"/ingredients"} exact render={() =>
-                            <Ingredients obj={this.state.ingredients} onDelete={this.deleteIngredient}/>}>
+                            <Ingredients obj={this.state.ingredients} onDelete={this.deleteIngredient}
+                                         onPageClick={this.loadIngredients} totalPages={this.state.totalPages}/>}>
                         </Route>
                         <Route path={"/pizzas"}>
                             <Pizzas/>
                         </Route>
-                        <Route path="/ingredients/:ingredientId/edit" render={() =>
-                            <IngredientEdit onSubmit={this.updateIngredient}/>}>
-                        </Route>
                         <Route path={"/ingredients/new"} render={() =>
                             <IngredientAdd onNewTermAdded={this.createIngredient}/>}>
                         </Route>
-                        <Route path="//ingredients/:ingredientId/details" render={() =>
-                            <IngredientDetail/>}>
+                        <Route path="/ingredients/:ingredientId/edit" render={() =>
+                            <IngredientEdit onSubmit={this.updateIngredient}/>}>
                         </Route>
-
+                        <Route path="/ingredients/:ingredientId/details" exact
+                        render={() => <IngredientDetail/>}>
+                        </Route>
                         <Redirect to={"/home"}/>
                     </main>
                 </Router>
